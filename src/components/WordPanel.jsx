@@ -1,24 +1,14 @@
-import { Character } from "./Character"
+"use client";
 
-const fetchRandomPokemonName = async () => {
-  const url = "https://pokeapi.co/api/v2/pokemon?limit=150";
+import { Character } from "./Character";
 
-  const pokemonData = await fetch(url).then((res) => res.json());
-  console.log(pokemonData);
-  const randomPokemon = pokemonData.results[Math.floor(Math.random() * pokemonData.results.length)];
-  return randomPokemon.name;
+export const WordPanel = () => {
+  const breakTextIntoCharacters = () => {
+    const text = "we run hard";
+    return text
+      .split("")
+      .map((char, index) => <Character key={index} char={char} />);
+  };
+
+  return <div className="flex">{breakTextIntoCharacters()}</div>;
 };
-
-export const WordPanel = async() => {
-
-  const breakTextIntoCharacters = async () => {
-    const text = await fetchRandomPokemonName();
-    return text.split("").map((char, index) => <Character key={index} char={char} />);
-  }
-
-  return (
-    <div>
-      {await breakTextIntoCharacters()}
-    </div>
-  )
-}
