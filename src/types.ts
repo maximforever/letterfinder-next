@@ -1,6 +1,10 @@
+export type CharStates = "incomplete" | "correct" | "incorrect" | "corrected";
+
 export type CharStats = {
-  char: string;
+  character: string;
+  typed: string | null;
+  deleted: boolean;
   index: number;
-  state: "incomplete" | "correct" | "incorrect" | "corrected";
+  state: CharStates;
   timeToCorrect: number | null;
 };

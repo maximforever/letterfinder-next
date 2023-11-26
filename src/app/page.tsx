@@ -4,9 +4,12 @@ import { Frame } from "@/components/Frame";
 import { Analytics } from "@/components/Analytics";
 
 export default function Home() {
+  const text =
+    "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s";
+
   return (
-    <main>
-      <Frame text={"we run hard."} />
+    <main className="h-screen flex flex-col justify-center items-center">
+      <Frame text={text} />
       <Analytics />
     </main>
   );

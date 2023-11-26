@@ -1,34 +1,33 @@
 "use client";
 import { useState } from "react";
 import { Character } from "./Character";
+import { CharStats } from "@/types";
 
 type WordProps = {
   word: string;
-  startingWordIndex: number;
+  startingIndex: number;
   currentCharacterIndex: number;
+  chars: CharStats[];
 };
 
 export const Word = ({
   word,
-  startingWordIndex,
+  startingIndex,
   currentCharacterIndex,
+  chars,
 }: WordProps) => {
   const renderCharacters = () => {
-    return word
-      .split("")
-      .map((char, index) => (
+    return word.split("").map((_, index) => {
+      const thisChar = chars[startingIndex + index];
+      return (
         <Character
           key={index}
-          index={startingWordIndex + index}
-          char={char}
+          char={thisChar}
           currentCharacterIndex={currentCharacterIndex}
         />
-      ));
+      );
+    });
   };
 
-  return (
-    <div className="flex p-2 rounded-md border-2 border-black">
-      {renderCharacters()}
-    </div>
-  );
+  return <div className="flex py-2 border-black">{renderCharacters()}</div>;
 };
