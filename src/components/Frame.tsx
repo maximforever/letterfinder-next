@@ -43,7 +43,10 @@ export const Frame = ({ text }) => {
 
   //once chars are in state, listen for keydown
   useEffect(() => {
-    window.addEventListener("keydown", (e) => handleTyping(e.key));
+    window.addEventListener("keydown", handleTyping);
+    return () => {
+      return window.removeEventListener("keydown", handleTyping);
+    };
   }, []);
 
   const isValidKey = (key: string) => {
@@ -51,7 +54,9 @@ export const Frame = ({ text }) => {
   };
 
   const handleTyping = useCallback(
-    (key: string) => {
+    (e: KeyboardEvent) => {
+      const key = e.key;
+
       if (!isValidKey(key)) {
         return;
       }
@@ -102,7 +107,7 @@ export const Frame = ({ text }) => {
       return;
     }
 
-    const words = text.match(/\w+[ .,?!:;]/g);
+    const words = text.match(/[\w'-]+[ .,?!:;]+/g);
     let charIndex = 0;
 
     return words.map((word: string, index: number) => {
