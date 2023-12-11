@@ -29,5 +29,9 @@ export const Word = ({
     });
   };
 
-  return <div className="flex py-2 border-black">{renderCharacters()}</div>;
+  return (
+    <div className="flex py-2 border-2 border-black whitespace-nowrap">
+      {renderCharacters()}
+    </div>
+  );
 };
