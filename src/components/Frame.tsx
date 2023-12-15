@@ -10,6 +10,8 @@ const otherKeys = " ";
 const allowedKeys = alphabet + characters + otherKeys;
 
 export const Frame = ({ text }) => {
+  console.log("TEXT", text);
+
   const [characterIndex, _setCharacterIndex] = useState(0);
   const [chars, _setChars] = useState<CharStats[]>([]);
 
