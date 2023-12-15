@@ -28,6 +28,11 @@ export const Frame = ({ text }) => {
 
   // break text up into characters and save them to chars
   useEffect(() => {
+    // TODO: fix this
+    if (text === undefined) {
+      return;
+    }
+
     const updatedChars: CharStats[] = text.split("").map((character, index) => {
       return {
         character,
