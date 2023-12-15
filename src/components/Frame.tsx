@@ -107,9 +107,8 @@ export const Frame = ({ text }) => {
       return;
     }
 
-    const words = text.match(/[\w'-]+[ .,?!:;]+/g);
+    const words = text.match(/[\w'-]+[ .,?!:;]*/g);
     let charIndex = 0;
-
     return words.map((word: string, index: number) => {
       const charIndexForThisWord = charIndex;
       charIndex += word.length;

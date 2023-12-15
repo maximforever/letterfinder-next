@@ -34,7 +34,7 @@ export const Character = ({ char, currentCharacterIndex }: CharProps) => {
     }
   };
 
-  return (
+  return char === undefined ? null : (
     <div
       className={`w-6 h-9 l:w-8 lg:h-12 m-1 relative text-base xl:text-lg rounded-sm flex justify-center items-center ${currentCharStyling()}`}
     >
