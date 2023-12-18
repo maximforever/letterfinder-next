@@ -1,5 +1,6 @@
 "use client";
-import { CharStates, CharStats } from "@/types";
+
+import { CharStats } from "@/types";
 
 type CharProps = {
   char: CharStats;
