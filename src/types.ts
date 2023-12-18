@@ -7,12 +7,20 @@ export type CharStats = {
   deleted: boolean;
   index: number;
   state: CharStates;
-  timeToCorrect: number | null;
+  startTime: number | null;
+  timeToType: number | null;
+  timeToTypeCorrectly: number | null;
 };
 
-export type FrameStats = {
+export type CompletedFrameStats = {
   wpm: number;
   textLength: number;
   totalTime: number;
   text: string;
+};
+
+export type CompletedFrameResults = {
+  text: string;
+  timeToComplete: number;
+  charStats: CharStats[];
 };

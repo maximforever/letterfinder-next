@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Word } from "./Word";
-import { CharStats, CharStates, FrameStats } from "@/types";
+import {
+  CharStats,
+  CharStates,
+  CompletedFrameStats,
+  CompletedFrameResults,
+} from "@/types";
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz";
 const characters = ".,:;?!\"'";
@@ -13,28 +18,29 @@ export const Frame = ({ text }: { text: string }) => {
   const [characterIndex, _setCharacterIndex] = useState(0);
   const [chars, _setChars] = useState<CharStats[]>([]);
   const [complete, setComplete] = useState(false);
-  const [frameStats, setFrameStats] = useState<null | FrameStats>(null);
+  const [completedFrameStats, setCompletedFrameStats] =
+    useState<null | CompletedFrameStats>(null);
 
-  const startTime = useRef(null);
-  const lastTimeTyped = useRef(null);
+  const frameStartTime = useRef(null);
   const characterIndexRef = useRef(characterIndex);
   const charsRef = useRef(chars);
 
+  // TODO: we do this because...?
   function setCurrentCharacterIndex(value) {
     characterIndexRef.current = value; // Updates the ref
     _setCharacterIndex(value);
   }
 
-  function setChars(value) {
+  function setChars(value: CharStats[]) {
     charsRef.current = value; // Updates the ref
     _setChars(value);
   }
 
   function saveFrame() {
     // TODO: why can't I access chars? Why do I need chars.current?
-    const frameBody = {
+    const frameBody: CompletedFrameResults = {
       text: text,
-      timeToComplete: Date.now() - startTime.current,
+      timeToComplete: Date.now() - frameStartTime.current,
       charStats: charsRef.current,
     };
 
@@ -44,7 +50,7 @@ export const Frame = ({ text }: { text: string }) => {
     })
       .then((res) => res.json())
       .then((res) => {
-        setFrameStats({
+        setCompletedFrameStats({
           wpm: res.wpm,
           textLength: res.textLength,
           totalTime: res.totalTime,
@@ -72,7 +78,9 @@ export const Frame = ({ text }: { text: string }) => {
           deleted: false,
           index,
           state: "incomplete",
-          timeToCorrect: null,
+          startTime: null,
+          timeToType: null,
+          timeToTypeCorrectly: null,
         };
       });
 
@@ -110,8 +118,12 @@ export const Frame = ({ text }: { text: string }) => {
         return;
       }
 
+      // we do updatedChars to make a whole bunch of immediate changes to the most up-to-date char stat info,
+      // then update the state and ref with it
+
       const currentCharacterIndex = characterIndexRef.current;
-      const currentChars = charsRef.current;
+      const updatedChars = charsRef.current;
+      let timeToType: null | number = null;
       let timeToTypeCorrectly: null | number = null;
 
       let newCharacterState: CharStates;
@@ -127,28 +139,37 @@ export const Frame = ({ text }: { text: string }) => {
           return;
         }
 
-        if (key === currentChars[currentCharacterIndex].character) {
-          const charCorrectedOrIncorrect = ["incorrect", "corrected"].includes(
-            currentChars[currentCharacterIndex].state
-          );
-          newCharacterState = charCorrectedOrIncorrect
-            ? "corrected"
-            : "correct";
+        if (key === updatedChars[currentCharacterIndex].character) {
+          // if we got the right key, then we're either correct or correcting
+          newCharacterState =
+            updatedChars[currentCharacterIndex].state === "incomplete"
+              ? "correct"
+              : "corrected";
         } else {
           newCharacterState = "incorrect";
         }
 
         if (currentCharacterIndex === 0) {
-          startTime.current = Date.now();
+          // we don't track the first character
+          frameStartTime.current = Date.now();
         } else {
-          timeToTypeCorrectly = Date.now() - lastTimeTyped.current;
-        }
+          // if this isn't the first character...
+          const updatedCharStartTime =
+            updatedChars[currentCharacterIndex].startTime;
+          const currentCharTimeToType =
+            updatedChars[currentCharacterIndex].timeToType;
+          const currentCharTimeToTypeCorrectly =
+            updatedChars[currentCharacterIndex].timeToTypeCorrectly;
 
-        if (
-          charsRef.current[currentCharacterIndex].timeToCorrect === null ||
-          newCharacterState === "corrected"
-        ) {
-          lastTimeTyped.current = Date.now();
+          // record the typing time
+          if (currentCharTimeToType === null) {
+            timeToType = Date.now() - updatedCharStartTime;
+          }
+
+          // record the correct typing time
+          if (currentCharTimeToTypeCorrectly === null) {
+            timeToTypeCorrectly = Date.now() - updatedCharStartTime;
+          }
         }
 
         if (currentCharacterIndex < text.length) {
@@ -156,14 +177,21 @@ export const Frame = ({ text }: { text: string }) => {
         }
       }
 
-      const updatedChars = [...currentChars];
       updatedChars[currentCharacterIndex] = {
         ...updatedChars[currentCharacterIndex],
         state: newCharacterState,
         deleted: newCharacterDeleted,
-        timeToCorrect: timeToTypeCorrectly,
+        timeToType: timeToType,
+        timeToTypeCorrectly: timeToTypeCorrectly,
         typed: key,
       };
+
+      // if there's a next character that hasn't been started, its time starts now
+      if (currentCharacterIndex + 1 < text.length) {
+        if (updatedChars[currentCharacterIndex + 1].startTime === null) {
+          updatedChars[currentCharacterIndex + 1].startTime === Date.now();
+        }
+      }
 
       setChars(updatedChars);
     },
@@ -195,7 +223,7 @@ export const Frame = ({ text }: { text: string }) => {
   };
 
   const renderCompleteScreen = () => {
-    if (frameStats === null) {
+    if (completedFrameStats === null) {
       return;
     }
 
@@ -204,9 +232,9 @@ export const Frame = ({ text }: { text: string }) => {
         <h2 className="text-2xl bold pb-4 text-green-500 text-center">
           You got it!
         </h2>
-        <p>Words typed: {frameStats.textLength}</p>
-        <p>time: {frameStats.totalTime}</p>
-        <p>WPM: {frameStats.wpm}</p>
+        <p>Words typed: {completedFrameStats.textLength}</p>
+        <p>time: {completedFrameStats.totalTime}</p>
+        <p>WPM: {completedFrameStats.wpm}</p>
       </div>
     );
   };
