@@ -15,7 +15,7 @@ export const Character = ({ char, currentCharacterIndex }: CharProps) => {
     }
   };
 
-  const currentCharStyling = () => {
+  const backgroundColor = () => {
     const isCurrentChar = char.index === currentCharacterIndex;
     const isSpace = !char.character.trim().length;
 
@@ -36,7 +36,7 @@ export const Character = ({ char, currentCharacterIndex }: CharProps) => {
 
   return char === undefined ? null : (
     <div
-      className={`w-6 h-9 l:w-8 lg:h-12 m-1 relative text-base xl:text-lg rounded-sm flex justify-center items-center ${currentCharStyling()}`}
+      className={`w-6 h-9 l:w-8 lg:h-12 m-1 relative text-base xl:text-lg rounded-sm flex justify-center items-center ${backgroundColor()}`}
     >
       {char.character}
       {renderCurrentCharacterIndicator()}
