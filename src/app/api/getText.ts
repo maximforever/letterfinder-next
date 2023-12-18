@@ -1,3 +1,5 @@
+"use server";
+
 const { MongoClient } = require("mongodb");
 
 const uri = "mongodb://localhost:27017/letterfixer";
@@ -22,20 +24,6 @@ export async function getText() {
     return frames[0].text;
   } catch {
     return "error";
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-export async function addChar() {
-  try {
-    // Connect the client to the server
-    await client.connect();
-    // Establish and verify connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Connected successfully to server");
-
-    await client.db.chars.insertOne({ char: "a" });
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();

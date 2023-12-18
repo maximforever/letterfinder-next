@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+
 import { Character } from "./Character";
 import { CharStats } from "@/types";
 
@@ -17,6 +17,7 @@ export const Word = ({
   chars,
 }: WordProps) => {
   const renderCharacters = () => {
+    // we're not using the character from this map because we need all the char stats (to render the chars properly)
     return word.split("").map((_, index) => {
       const thisChar = chars[startingIndex + index];
       return (
@@ -30,7 +31,7 @@ export const Word = ({
   };
 
   return (
-    <div className="flex py-2 border-2 border-black whitespace-nowrap">
+    <div className="flex py-2 whitespace-nowrap border-2 border-black">
       {renderCharacters()}
     </div>
   );

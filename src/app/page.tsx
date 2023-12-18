@@ -1,6 +1,7 @@
 import { Frame } from "@/components/Frame";
 import { Analytics } from "@/components/Analytics";
-import { getText } from "@/api/text";
+import { getText } from "./api/getText";
+import { getSampleSentence } from "@/components/sampleText";
 
 export default async function Home() {
   // const difficultLetters = "[c,e,y,n,b]";
@@ -47,11 +48,14 @@ export default async function Home() {
   const text =
     "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s";
 
-  console.log(await getText());
+  const sampleSentence = getSampleSentence();
+  console.log("sending over:");
+  console.log(sampleSentence);
 
   return (
-    <main className="h-screen flex flex-col justify-center items-center">
-      <Frame text={await getText()} />
+    <main className="h-screen flex flex-col justify-start items-center">
+      {/* <Frame text={await getText()} /> */}
+      <Frame text={sampleSentence} />
       <Analytics />
     </main>
   );
