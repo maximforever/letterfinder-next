@@ -48,13 +48,12 @@ export default async function Home() {
   const text =
     "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s";
 
-  const sampleSentence = getSampleSentence();
+  const sampleSentence = getSampleSentence().trim().toLocaleLowerCase();
   console.log("sending over:");
   console.log(sampleSentence);
 
   return (
     <main className="h-screen flex flex-col justify-start items-center">
-      {/* <Frame text={await getText()} /> */}
       <Frame text={sampleSentence} />
       <Analytics />
     </main>

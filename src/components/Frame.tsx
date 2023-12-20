@@ -50,11 +50,13 @@ export const Frame = ({ text }: { text: string }) => {
     })
       .then((res) => res.json())
       .then((res) => {
+        console.log(res);
         setCompletedFrameStats({
           wpm: res.wpm,
           textLength: res.textLength,
           totalTime: res.totalTime,
           text: res.text,
+          frameAccuracy: res.frameAccuracy,
         });
       });
   }
@@ -141,10 +143,11 @@ export const Frame = ({ text }: { text: string }) => {
 
         if (key === updatedChars[currentCharacterIndex].character) {
           // if we got the right key, then we're either correct or correcting
-          newCharacterState =
-            updatedChars[currentCharacterIndex].state === "incomplete"
-              ? "correct"
-              : "corrected";
+          newCharacterState = ["incomplete", "correct"].includes(
+            updatedChars[currentCharacterIndex].state
+          )
+            ? "correct"
+            : "corrected";
         } else {
           newCharacterState = "incorrect";
         }
@@ -189,7 +192,7 @@ export const Frame = ({ text }: { text: string }) => {
       // if there's a next character that hasn't been started, its time starts now
       if (currentCharacterIndex + 1 < text.length) {
         if (updatedChars[currentCharacterIndex + 1].startTime === null) {
-          updatedChars[currentCharacterIndex + 1].startTime === Date.now();
+          updatedChars[currentCharacterIndex + 1].startTime = Date.now();
         }
       }
 
@@ -233,8 +236,11 @@ export const Frame = ({ text }: { text: string }) => {
           You got it!
         </h2>
         <p>Words typed: {completedFrameStats.textLength}</p>
-        <p>time: {completedFrameStats.totalTime}</p>
+        <p>
+          time: {Math.floor((completedFrameStats.totalTime / 1000) * 100) / 100}
+        </p>
         <p>WPM: {completedFrameStats.wpm}</p>
+        <p>Accuracy: {completedFrameStats.frameAccuracy}</p>
       </div>
     );
   };

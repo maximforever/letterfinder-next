@@ -21,7 +21,7 @@ export async function getText() {
     const framesCollection = await db.collection("frames");
     const frames = await framesCollection.find({}).toArray();
 
-    return frames[0].text;
+    return frames[0].text.trim().toLowerCase();
   } catch {
     return "error";
   } finally {

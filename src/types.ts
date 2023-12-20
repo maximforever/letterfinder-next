@@ -17,10 +17,22 @@ export type CompletedFrameStats = {
   textLength: number;
   totalTime: number;
   text: string;
+  frameAccuracy: number;
 };
 
 export type CompletedFrameResults = {
   text: string;
   timeToComplete: number;
   charStats: CharStats[];
+};
+
+export type ProcessedCharacterStats = {
+  count: number;
+  correct: number;
+  accuracy: number;
+  totalTime: number;
+  averageTime: number;
+  averageTimeToCorrect: number;
+  ratioOfAverageTimeToFrameAverage?: number;
+  ratioOfAverageTimeToFrameMedian?: number;
 };
