@@ -17,22 +17,15 @@ const allowedKeys = alphabet + characters + otherKeys;
 
 export const Frame = ({}: {}) => {
   const [text, setText] = useState(null);
-  const [characterIndex, _setCharacterIndex] = useState(0);
+  const [characterIndex, setCharacterIndex] = useState(0);
   const [chars, _setChars] = useState<CharStats[]>([]);
   const [complete, setComplete] = useState(false);
   const [completedFrameStats, setCompletedFrameStats] =
     useState<null | CompletedFrameStats>(null);
 
   const frameStartTime = useRef(null);
-  const characterIndexRef = useRef(characterIndex);
   const charsRef = useRef(chars);
   const textRef = useRef(null);
-
-  // TODO: we do this because...?
-  function setCurrentCharacterIndex(value) {
-    characterIndexRef.current = value; // Updates the ref
-    _setCharacterIndex(value);
-  }
 
   function setChars(value: CharStats[]) {
     charsRef.current = value; // Updates the ref
@@ -76,7 +69,7 @@ export const Frame = ({}: {}) => {
   }
 
   function resetFrameWithNewText() {
-    setCurrentCharacterIndex(0);
+    setCharacterIndex(0);
     setChars([]);
     setComplete(false);
     setCompletedFrameStats(null);
@@ -150,31 +143,30 @@ export const Frame = ({}: {}) => {
       // we do updatedChars to make a whole bunch of immediate changes to the most up-to-date char stat info,
       // then update the state and ref with it
 
-      const currentCharacterIndex = characterIndexRef.current;
       const updatedChars = charsRef.current;
       let timeToType: null | number = null;
       let timeToTypeCorrectly: null | number = null;
       let typedKey: null | string = null;
 
       let newCharacterState: CharStates =
-        charsRef.current[currentCharacterIndex].state;
+        charsRef.current[characterIndex].state;
 
       if (key === "Backspace") {
-        if (currentCharacterIndex > 0) {
-          updatedChars[currentCharacterIndex - 1].deleted = true;
-          setCurrentCharacterIndex(currentCharacterIndex - 1);
+        if (characterIndex > 0) {
+          updatedChars[characterIndex - 1].deleted = true;
+          setCharacterIndex(characterIndex - 1);
         }
       } else {
-        if (currentCharacterIndex >= text.length) {
+        if (characterIndex >= text.length) {
           return;
         }
 
         typedKey = key;
 
-        if (key === updatedChars[currentCharacterIndex].character) {
+        if (key === updatedChars[characterIndex].character) {
           // if we got the right key, then we're either correct or correcting
           newCharacterState = ["incomplete", "correct"].includes(
-            updatedChars[currentCharacterIndex].state
+            updatedChars[characterIndex].state
           )
             ? "correct"
             : "corrected";
@@ -182,17 +174,15 @@ export const Frame = ({}: {}) => {
           newCharacterState = "incorrect";
         }
 
-        if (currentCharacterIndex === 0) {
+        if (characterIndex === 0) {
           // we don't track the first character
           frameStartTime.current = Date.now();
         } else {
           // if this isn't the first character...
-          const updatedCharStartTime =
-            updatedChars[currentCharacterIndex].startTime;
-          const currentCharTimeToType =
-            updatedChars[currentCharacterIndex].timeToType;
+          const updatedCharStartTime = updatedChars[characterIndex].startTime;
+          const currentCharTimeToType = updatedChars[characterIndex].timeToType;
           const currentCharTimeToTypeCorrectly =
-            updatedChars[currentCharacterIndex].timeToTypeCorrectly;
+            updatedChars[characterIndex].timeToTypeCorrectly;
 
           // record the typing time
           if (currentCharTimeToType === null) {
@@ -205,13 +195,13 @@ export const Frame = ({}: {}) => {
           }
         }
 
-        if (currentCharacterIndex < text.length) {
-          setCurrentCharacterIndex(currentCharacterIndex + 1);
+        if (characterIndex < text.length) {
+          setCharacterIndex(characterIndex + 1);
         }
       }
 
-      updatedChars[currentCharacterIndex] = {
-        ...updatedChars[currentCharacterIndex],
+      updatedChars[characterIndex] = {
+        ...updatedChars[characterIndex],
         state: newCharacterState,
         timeToType: timeToType,
         timeToTypeCorrectly: timeToTypeCorrectly,
@@ -219,15 +209,15 @@ export const Frame = ({}: {}) => {
       };
 
       // if there's a next character that hasn't been started, its time starts now
-      if (currentCharacterIndex + 1 < text.length) {
-        if (updatedChars[currentCharacterIndex + 1].startTime === null) {
-          updatedChars[currentCharacterIndex + 1].startTime = Date.now();
+      if (characterIndex + 1 < text.length) {
+        if (updatedChars[characterIndex + 1].startTime === null) {
+          updatedChars[characterIndex + 1].startTime = Date.now();
         }
       }
 
       setChars(updatedChars);
     },
-    [chars, text, complete]
+    [chars, text, characterIndex, complete]
   );
 
   const breakTextIntoWords = () => {
