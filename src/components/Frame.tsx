@@ -11,7 +11,7 @@ import {
 } from "@/types";
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz";
-const characters = ".,:;?!\"'";
+const characters = ".,:;?!\"'-";
 const otherKeys = " ";
 const allowedKeys = alphabet + characters + otherKeys;
 
