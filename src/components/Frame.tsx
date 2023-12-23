@@ -18,26 +18,19 @@ const allowedKeys = alphabet + characters + otherKeys;
 export const Frame = ({}: {}) => {
   const [text, setText] = useState(null);
   const [characterIndex, setCharacterIndex] = useState(0);
-  const [chars, _setChars] = useState<CharStats[]>([]);
+  const [chars, setChars] = useState<CharStats[]>([]);
   const [complete, setComplete] = useState(false);
   const [completedFrameStats, setCompletedFrameStats] =
     useState<null | CompletedFrameStats>(null);
 
   const frameStartTime = useRef(null);
-  const charsRef = useRef(chars);
-  const textRef = useRef(null);
-
-  function setChars(value: CharStats[]) {
-    charsRef.current = value; // Updates the ref
-    _setChars(value);
-  }
+  const textDivRef = useRef(null);
 
   function saveFrame() {
-    // TODO: why can't I access chars? Why do I need chars.current?
     const frameBody: CompletedFrameResults = {
       text: text,
       timeToComplete: Date.now() - frameStartTime.current,
-      charStats: charsRef.current,
+      charStats: chars,
     };
 
     fetch("/api/frame", {
@@ -73,9 +66,7 @@ export const Frame = ({}: {}) => {
     setChars([]);
     setComplete(false);
     setCompletedFrameStats(null);
-
     frameStartTime.current = null;
-    charsRef.current = null;
   }
 
   useEffect(() => {
@@ -83,10 +74,10 @@ export const Frame = ({}: {}) => {
   }, []);
 
   useEffect(() => {
-    if (textRef === null || textRef.current === null) {
+    if (textDivRef === null || textDivRef.current === null) {
       return;
     }
-    textRef.current.focus();
+    textDivRef.current.focus();
   }, [text]);
 
   // break text up into characters and save them to chars
@@ -143,13 +134,12 @@ export const Frame = ({}: {}) => {
       // we do updatedChars to make a whole bunch of immediate changes to the most up-to-date char stat info,
       // then update the state and ref with it
 
-      const updatedChars = charsRef.current;
+      const updatedChars = chars;
       let timeToType: null | number = null;
       let timeToTypeCorrectly: null | number = null;
       let typedKey: null | string = null;
 
-      let newCharacterState: CharStates =
-        charsRef.current[characterIndex].state;
+      let newCharacterState: CharStates = chars[characterIndex].state;
 
       if (key === "Backspace") {
         if (characterIndex > 0) {
@@ -277,7 +267,7 @@ export const Frame = ({}: {}) => {
     "Loading..."
   ) : (
     <div
-      ref={textRef}
+      ref={textDivRef}
       autoFocus
       tabIndex={0}
       onKeyDown={handleTyping}
