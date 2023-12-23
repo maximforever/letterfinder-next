@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Word } from "./Word";
 import {
@@ -14,7 +15,8 @@ const characters = ".,:;?!\"'";
 const otherKeys = " ";
 const allowedKeys = alphabet + characters + otherKeys;
 
-export const Frame = ({ text }: { text: string }) => {
+export const Frame = ({}: {}) => {
+  const [text, setText] = useState(null);
   const [characterIndex, _setCharacterIndex] = useState(0);
   const [chars, _setChars] = useState<CharStats[]>([]);
   const [complete, setComplete] = useState(false);
@@ -24,6 +26,7 @@ export const Frame = ({ text }: { text: string }) => {
   const frameStartTime = useRef(null);
   const characterIndexRef = useRef(characterIndex);
   const charsRef = useRef(chars);
+  const textRef = useRef(null);
 
   // TODO: we do this because...?
   function setCurrentCharacterIndex(value) {
@@ -61,10 +64,42 @@ export const Frame = ({ text }: { text: string }) => {
       });
   }
 
+  function fetchNewText() {
+    fetch("/api/text", {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then(({ text }) => {
+        resetFrameWithNewText();
+        setText(text);
+      });
+  }
+
+  function resetFrameWithNewText() {
+    setCurrentCharacterIndex(0);
+    setChars([]);
+    setComplete(false);
+    setCompletedFrameStats(null);
+
+    frameStartTime.current = null;
+    charsRef.current = null;
+  }
+
+  useEffect(() => {
+    fetchNewText();
+  }, []);
+
+  useEffect(() => {
+    if (textRef === null || textRef.current === null) {
+      return;
+    }
+    textRef.current.focus();
+  }, [text]);
+
   // break text up into characters and save them to chars
   useEffect(() => {
     // TODO: fix this
-    if (text === undefined) {
+    if (text === undefined || text === null) {
       return;
     }
 
@@ -89,19 +124,11 @@ export const Frame = ({ text }: { text: string }) => {
     setChars(updatedChars);
   }, [text]);
 
-  //once chars are in state, listen for keydown
   useEffect(() => {
-    if (!complete) {
-      window.addEventListener("keydown", handleTyping);
-    } else {
-      return window.removeEventListener("keydown", handleTyping);
+    if (text === undefined || text === null) {
+      return;
     }
-    return () => {
-      return window.removeEventListener("keydown", handleTyping);
-    };
-  }, [complete]);
 
-  useEffect(() => {
     if (characterIndex === text.length) {
       setComplete(true);
       saveFrame();
@@ -113,7 +140,7 @@ export const Frame = ({ text }: { text: string }) => {
   };
 
   const handleTyping = useCallback(
-    (e: KeyboardEvent) => {
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
       const key = e.key;
 
       if (!isValidKey(key) || complete) {
@@ -127,19 +154,22 @@ export const Frame = ({ text }: { text: string }) => {
       const updatedChars = charsRef.current;
       let timeToType: null | number = null;
       let timeToTypeCorrectly: null | number = null;
+      let typedKey: null | string = null;
 
-      let newCharacterState: CharStates;
-      let newCharacterDeleted = false;
+      let newCharacterState: CharStates =
+        charsRef.current[currentCharacterIndex].state;
 
       if (key === "Backspace") {
-        newCharacterDeleted = true;
         if (currentCharacterIndex > 0) {
+          updatedChars[currentCharacterIndex - 1].deleted = true;
           setCurrentCharacterIndex(currentCharacterIndex - 1);
         }
       } else {
         if (currentCharacterIndex >= text.length) {
           return;
         }
+
+        typedKey = key;
 
         if (key === updatedChars[currentCharacterIndex].character) {
           // if we got the right key, then we're either correct or correcting
@@ -183,10 +213,9 @@ export const Frame = ({ text }: { text: string }) => {
       updatedChars[currentCharacterIndex] = {
         ...updatedChars[currentCharacterIndex],
         state: newCharacterState,
-        deleted: newCharacterDeleted,
         timeToType: timeToType,
         timeToTypeCorrectly: timeToTypeCorrectly,
-        typed: key,
+        typed: typedKey,
       };
 
       // if there's a next character that hasn't been started, its time starts now
@@ -198,7 +227,7 @@ export const Frame = ({ text }: { text: string }) => {
 
       setChars(updatedChars);
     },
-    [chars]
+    [chars, text, complete]
   );
 
   const breakTextIntoWords = () => {
@@ -231,26 +260,43 @@ export const Frame = ({ text }: { text: string }) => {
     }
 
     return (
-      <div className="border-2 border-green-500 mb-4 p-2 flex flex-col absolute bottom-12 min-w-[200px] rounded-lg">
-        <h2 className="text-2xl bold pb-4 text-green-500 text-center">
-          You got it!
-        </h2>
-        <p>Words typed: {completedFrameStats.textLength}</p>
-        <p>
-          time: {Math.floor((completedFrameStats.totalTime / 1000) * 100) / 100}
-        </p>
-        <p>WPM: {completedFrameStats.wpm}</p>
-        <p>Accuracy: {completedFrameStats.frameAccuracy}</p>
+      <div className="absolute bottom-12 min-w-[200px]">
+        <div className="border-2 border-green-500 mb-4 p-2 flex flex-col  rounded-lg">
+          <h2 className="text-2xl bold pb-4 text-green-500 text-center">
+            You got it!
+          </h2>
+          <p>Words typed: {completedFrameStats.text.split(" ").length}</p>
+          <p>
+            time:{" "}
+            {Math.floor((completedFrameStats.totalTime / 1000) * 100) / 100}
+          </p>
+          <p>WPM: {completedFrameStats.wpm}</p>
+          <p>Accuracy: {completedFrameStats.frameAccuracy}</p>
+        </div>
+        <button
+          className="bg-green-500 text-white font-semibold px-4 py-1 rounded-lg"
+          onClick={fetchNewText}
+        >
+          Next →
+        </button>
       </div>
     );
   };
 
-  return (
-    <>
+  return text === null ? (
+    "Loading..."
+  ) : (
+    <div
+      ref={textRef}
+      autoFocus
+      tabIndex={0}
+      onKeyDown={handleTyping}
+      className="focus:outline-none"
+    >
       <div className="flex  max-w-[90%] lg:max-w-screen-lg flex-wrap m-4 p-4 border">
         {breakTextIntoWords()}
       </div>
       {complete && renderCompleteScreen()}
-    </>
+    </div>
   );
 };

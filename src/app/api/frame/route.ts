@@ -1,17 +1,7 @@
 "use server";
-
-const { MongoClient } = require("mongodb");
 import { calculateWPM } from "./frameLogic";
 import { generateFrameStats, generatePerCharacterStats } from "./frameSummary";
-import { ProcessedCharacterStats } from "@/types";
-
-const uri = "mongodb://localhost:27017/letterfixer";
-
-// Create a new MongoClient
-const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+import { saveFrame } from "@/app/db/saveFrame";
 
 export async function POST(req: Request, res: Response) {
   console.log("HIT THE ROUTE AYYYYE!");
@@ -19,18 +9,10 @@ export async function POST(req: Request, res: Response) {
     const body = await req.json();
 
     try {
-      // Connect the client to the server
-      await client.connect();
-      // Establish and verify connection
-      const db = await client.db("letterfixer");
-      const framesCollection = await db.collection("frames");
-
-      await framesCollection.insertOne({
-        text: "testing",
-        wpm: Math.floor(Math.random() * 200),
-      });
-
+      // TODO: figure out the types for incoming frame stats and processed frame stats
+      // as well as the frame stats we send over
       const frameStats = generateFrameStats(body);
+      await saveFrame(frameStats);
 
       return new Response(
         JSON.stringify({
@@ -48,9 +30,6 @@ export async function POST(req: Request, res: Response) {
       return new Response(JSON.stringify({ message: "Something went wrong" }), {
         status: 500,
       });
-    } finally {
-      // Ensures that the client will close when you finish/error
-      await client.close();
     }
   } else {
     // Handle any non-POST requests

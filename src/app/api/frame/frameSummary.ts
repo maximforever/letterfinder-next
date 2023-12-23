@@ -100,7 +100,8 @@ export function generateFrameStats(frame: CompletedFrameResults) {
 
   const standardDeviation = Math.floor(Math.sqrt(variance) * 100) / 100;
 
-  const topWongCharacters = getTopWrongCharacters(perCharacterStats);
+  const topWrongCharacters = getTopWrongCharacters(perCharacterStats);
+  const topSlowestCharacters = getTopSlowestCharacters(perCharacterStats);
 
   const frameAccuracy =
     Math.floor(
@@ -112,7 +113,8 @@ export function generateFrameStats(frame: CompletedFrameResults) {
   return {
     perCharacterStats,
     standardDeviation,
-    topWongCharacters,
+    topWrongCharacters,
+    topSlowestCharacters,
     frameAverageTimeToCorrect,
     frameMedianTimeToCorrect,
     frameAccuracy,
@@ -122,7 +124,12 @@ export function generateFrameStats(frame: CompletedFrameResults) {
 function getTopWrongCharacters(perCharacterStats: {
   [key: string]: ProcessedCharacterStats;
 }) {
-  const charStatArray = [];
+  const charStatArray: {
+    char: string;
+    accuracy: number;
+    count: number;
+    correct: number;
+  }[] = [];
 
   for (const [key, value] of Object.entries(perCharacterStats)) {
     if (value.accuracy < 100) {
@@ -138,6 +145,35 @@ function getTopWrongCharacters(perCharacterStats: {
         accuracy: char.accuracy,
         count: char.count,
         correct: char.correct,
+      };
+    });
+}
+
+// this can be combined with getTopWrongCharacters
+function getTopSlowestCharacters(perCharacterStats: {
+  [key: string]: ProcessedCharacterStats;
+}) {
+  const charStatArray: {
+    char: string;
+    accuracy: number;
+    count: number;
+    correct: number;
+    averageTimeToCorrect: number;
+  }[] = [];
+
+  for (const [key, value] of Object.entries(perCharacterStats)) {
+    charStatArray.push({ char: key, ...value });
+  }
+
+  return charStatArray
+    .sort((a, b) => b.averageTimeToCorrect - a.averageTimeToCorrect)
+    .map((char) => {
+      return {
+        char: char.char,
+        accuracy: char.accuracy,
+        count: char.count,
+        correct: char.correct,
+        averageTimeToCorrect: char.averageTimeToCorrect,
       };
     });
 }

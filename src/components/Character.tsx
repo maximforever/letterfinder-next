@@ -20,7 +20,7 @@ export const Character = ({ char, currentCharacterIndex }: CharProps) => {
     const isCurrentChar = char.index === currentCharacterIndex;
     const isSpace = !char.character.trim().length;
 
-    if (char.deleted || isCurrentChar) {
+    if (char.index >= currentCharacterIndex) {
       return isSpace ? "bg-slate-100" : "bg-slate-200";
     } else if (char.state === "incorrect") {
       return "bg-red-200";
